@@ -11,52 +11,6 @@ from aws_cdk import (
 )
 
 
-class NotificacionesStack(cdk.Stack):
-
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
-        super().__init__(scope, construct_id, **kwargs)
-
-        bucket = s3.Bucket.from_bucket_arn(self, id='Bucket', bucket_arn='arn:aws:s3:::infraestructurastack-bucketimglumidev6984f7c0-3ryskajehe5g')
-
-        table = ddb.Table.from_table_arn(self, id='dynamoTabla',table_arn='')
-
-        permissionsBoundary = iam.ManagedPolicy.from_managed_policy_name(
-            self, 'ScopePermissions', 'ScopePermissions'
-        )
-
-        lambdaRole = iam.Role(self, assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
-                              permissions_boundary=permissionsBoundary, role_name='RoleLambdaLuminitas',
-                              id='RoleLambdaLumis')
-        lambdaRole.add_managed_policy(
-            # iam.ManagedPolicy.from_aws_managed_policy_name(managed_policy_name='AWSLambdaBasicExecutionRole'))
-            iam.ManagedPolicy.from_managed_policy_arn(self, id='BasicAccess',
-                                                      managed_policy_arn='arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'))
-
-        # Lambda para trigger de carga de fotografias
-        lambda_function = _lambda.Function(
-            self, 'LambdaRek-' + 'dev',
-            runtime=_lambda.Runtime.PYTHON_3_8,
-            handler='lambda-handler.main',
-            code=_lambda.Code.asset('./lambda/cargaFotografias'),
-            environment={
-                'BUCKET_NAME': bucket.bucket_name,
-                'TABLE_NAME': table.table_name,
-                'ELASTIC_SEARCH': devDomain.domain_endpoint
-            },
-            role=lambdaRole
-        )
-
-        # permisos para RW para la lambda
-        bucket.grant_read_write(lambda_function)
-
-        notification = s3_notifications.LambdaDestination(lambdafn)
-        notification.bind(self, bucket)
-        bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.jpg'))
-        bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.jpeg'))
-        bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.png'))
-
-        bucket.grant_read_write(lambdafn)
-
 class InfraestructuraStack(cdk.Stack):
 
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
@@ -66,7 +20,7 @@ class InfraestructuraStack(cdk.Stack):
 
         #Grupos para cognito
         groupWAUsr = iam.Group(self, "Lumi-WebAppUsrGroup-" + stage)
-        groupWAAdm = iam.Group(self, "Lumi-WebAppAdminGroup-" + stage)
+        groupWAAdm = iam.Group(self, "Lumi-WebAppAdminGroup-" + stage)y
 
         permissionsBoundary = iam.ManagedPolicy.from_managed_policy_name(
             self, 'ScopePermissions', 'ScopePermissions'
@@ -108,6 +62,23 @@ class InfraestructuraStack(cdk.Stack):
                                    "enabled": True
                                }
                                )
+
+        # Lambda para trigger de carga de fotografias
+        lambda_function = _lambda.Function(
+            self, 'LambdaRek-' + stage,
+            runtime = _lambda.Runtime.PYTHON_3_8,
+            handler = 'lambda-handler.main',
+            code = _lambda.Code.asset('./lambda/cargaFotografias'),
+            environment = {
+                'BUCKET_NAME': bucket.bucket_name,
+                'TABLE_NAME': table.table_name,
+                'ELASTIC_SEARCH': devDomain.domain_endpoint
+            },
+            role= lambdaRole
+        )
+
+        # permisos para RW para la lambda
+        bucket.grant_read_write(lambda_function)
 
         # Lambda para obtener un listado de fotografias
         lambda_obtener_todo = _lambda.Function(
@@ -167,13 +138,13 @@ class InfraestructuraStack(cdk.Stack):
         lambda_function.add_to_role_policy(statement)
 
         # Desencadenante para S3 para llamar la lambda, considerando sufijos especificos
-        #notification = s3_notifications.LambdaDestination(lambda_function)
-        #notification.bind(self, bucket)
-        #bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.jpg'))
-        #bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.jpeg'))
-        #bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.png'))
+        notification = s3_notifications.LambdaDestination(lambda_function)
+        notification.bind(self, bucket)
+        bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.jpg'))
+        bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.jpeg'))
+        bucket.add_object_created_notification(notification, s3.NotificationKeyFilter(suffix='.png'))
 
-        #bucket.grant_read_write(lambda_function)
+        bucket.grant_read_write(lambda_function)
 
         # permisos para dynamodb
         table.grant_read_write_data(lambda_function)
