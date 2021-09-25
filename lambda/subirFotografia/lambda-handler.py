@@ -16,10 +16,15 @@ def get_as_base64(url):
 
 
 def main(event, context):
+    authUsr = event['headers']['Authorization']
+    jwtSplitted = authUsr.split('.')
+    usrInfo = base64.b64decode((jwtSplitted[1] + "========").encode("ascii"))
+    objUsr = json.loads(usrInfo.decode("ascii"))
+
     for item in event['images']:
 
         imageData = item['image']
-        imageName = str(uuid.uuid4()) + '-' + 'AquiVaElIDDeCoginito' + '.' + item['mime'].split('/')[1]
+        imageName = str(uuid.uuid4()) + '-' + '_' + objUsr['cognito:username'] + '_' + '.' + item['mime'].split('/')[1]
 
         if 'http' in imageData:
             if any(x in imageData for x in test_string):

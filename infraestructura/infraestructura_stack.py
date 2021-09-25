@@ -20,7 +20,7 @@ class InfraestructuraStack(cdk.Stack):
 
         #Grupos para cognito
         groupWAUsr = iam.Group(self, "Lumi-WebAppUsrGroup-" + stage)
-        groupWAAdm = iam.Group(self, "Lumi-WebAppAdminGroup-" + stage)y
+        groupWAAdm = iam.Group(self, "Lumi-WebAppAdminGroup-" + stage)
 
         permissionsBoundary = iam.ManagedPolicy.from_managed_policy_name(
             self, 'ScopePermissions', 'ScopePermissions'
@@ -74,7 +74,8 @@ class InfraestructuraStack(cdk.Stack):
                 'TABLE_NAME': table.table_name,
                 'ELASTIC_SEARCH': devDomain.domain_endpoint
             },
-            role= lambdaRole
+            role=lambdaRole,
+            timeout=cdk.Duration.minutes(1)
         )
 
         # permisos para RW para la lambda
@@ -87,7 +88,8 @@ class InfraestructuraStack(cdk.Stack):
             handler='lambda-handler.main',
             code= _lambda.Code.asset('./lambda/getFotografias'),
             environment={
-                'ELASTIC_SEARCH' : devDomain.domain_endpoint
+                'ELASTIC_SEARCH' : devDomain.domain_endpoint,
+                'BUCKET_NAME': bucket.bucket_name
             },
             role= lambdaRole
         )
@@ -111,7 +113,8 @@ class InfraestructuraStack(cdk.Stack):
             handler='lambda-handler.main',
             code=_lambda.Code.asset('./lambda/buscaFotografias'),
             environment={
-                'ELASTIC_SEARCH': devDomain.domain_endpoint
+                'ELASTIC_SEARCH': devDomain.domain_endpoint,
+                'BUCKET_NAME': bucket.bucket_name
             },
             role= lambdaRole
         )
