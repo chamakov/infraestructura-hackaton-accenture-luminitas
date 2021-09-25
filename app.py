@@ -10,9 +10,11 @@ from aws_cdk import core as cdk
 from aws_cdk import core
 
 from infraestructura.infraestructura_stack import InfraestructuraStack
+from infraestructura.infraestructura_stack import NotificacionesStack
 
 
 app = core.App()
+#NotificacionesStack(app, "InfraestructuraStack",
 InfraestructuraStack(app, "InfraestructuraStack",
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
