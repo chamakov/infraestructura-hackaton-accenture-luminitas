@@ -58,8 +58,7 @@ def main(event, context):
             "statusCode": 200,
             "headers": {
                 'Access-Control-Allow-Headers': '*',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET'
+                'Access-Control-Allow-Origin': '*'
             },
             "body": json.dumps({"images": body}, indent=4)
         }
@@ -68,8 +67,7 @@ def main(event, context):
             "statusCode": 405,
             "headers": {
                 'Access-Control-Allow-Headers': '*',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET'
+                'Access-Control-Allow-Origin': '*'
             },
             "body": json.dumps({
                 "message": "Method Not Supported"
