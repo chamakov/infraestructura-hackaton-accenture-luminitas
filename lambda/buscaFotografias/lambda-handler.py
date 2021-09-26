@@ -14,8 +14,8 @@ s3_client = boto3.client('s3')
 
 
 def main(event, context):
-    if event['httpMethod'] == 'GET':
-        r = requests.get('https://' + os.environ['ELASTIC_SEARCH'] + '/images/_search?q=labels:' + event['body']['parameter'], auth=awsauth)
+    if event['httpMethod'] == 'POST':
+        r = requests.get('https://' + os.environ['ELASTIC_SEARCH'] + '/images/_search?q=labels:' + json.loads(event['body'])['parameter'], auth=awsauth)
 
         if r.status_code >= 400:
             raise ValueError('Ocurrio un error al mandar la informacion a elasticsearch')
@@ -48,6 +48,12 @@ def main(event, context):
 
             body.append(imagen.copy())
 
+            bodyJson = []
+            for data in body:
+                bodyJson.append(json.dumps(data))
+
+            print(bodyJson)
+
         respuesta = {
             "statusCode": 200,
             "headers": {
@@ -55,9 +61,7 @@ def main(event, context):
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET'
             },
-            "body": {
-                "images": body
-            }
+            "body": json.dumps({"images": body}, indent=4)
         }
     else:
         respuesta = {

@@ -48,6 +48,12 @@ def main(event, context):
 
             body.append(imagen.copy())
 
+            bodyJson = []
+            for data in body:
+                bodyJson.append(json.dumps(data))
+
+            print(bodyJson)
+
         respuesta = {
             "statusCode": 200,
             "headers": {
@@ -55,9 +61,7 @@ def main(event, context):
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET'
             },
-            "body": {
-                "images": body
-            }
+            "body": json.dumps({"images": body}, indent=4)
         }
     else:
         respuesta = {

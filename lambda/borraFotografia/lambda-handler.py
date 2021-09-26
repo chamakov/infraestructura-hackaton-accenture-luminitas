@@ -26,7 +26,7 @@ def main(event, context):
 
             if 'Admin-Group' in objUsr['cognito:groups']:
                 puedeBorrar = True
-            elif objUsr['cognito:username'].trim() == event['body']['owner']:
+            elif objUsr['cognito:username'].trim() == json.loads(event['body'])['owner']:
                 puedeBorrar = True
             else:
                 puedeBorrar = False
@@ -34,7 +34,7 @@ def main(event, context):
             print(puedeBorrar)
 
             if puedeBorrar:
-                r = requests.delete('https://' + os.environ['ELASTIC_SEARCH'] + '/images/_doc/' + event['body']['id'],
+                r = requests.delete('https://' + os.environ['ELASTIC_SEARCH'] + '/images/_doc/' + json.loads(event['body'])['id'],
                                     auth=awsauth)
 
                 if r.status_code >= 400:
